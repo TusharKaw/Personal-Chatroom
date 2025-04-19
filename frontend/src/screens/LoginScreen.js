@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
-import { Form, Button, Row, Col } from 'react-bootstrap';
+import { Form, Button, Row, Col, Alert } from 'react-bootstrap';
 import { useDispatch, useSelector } from 'react-redux';
 import FormContainer from '../components/FormContainer';
 import { login } from '../redux/slices/authSlice';
@@ -13,24 +13,32 @@ const LoginScreen = () => {
   const navigate = useNavigate();
   const location = useLocation();
 
-  const { userInfo, isLoading } = useSelector((state) => state.auth);
+  const { userInfo, isLoading, isError, errorMessage } = useSelector((state) => state.auth);
 
-  const redirect = location.search ? location.search.split('=')[1] : '/';
+  const redirect = location.search ? location.search.split('=')[1] : '/chat';
 
   useEffect(() => {
+    // Debug log
+    console.log('LoginScreen useEffect - userInfo:', userInfo);
+    
     if (userInfo) {
+      console.log('Redirecting to:', redirect);
       navigate(redirect);
     }
   }, [navigate, userInfo, redirect]);
 
   const submitHandler = (e) => {
     e.preventDefault();
+    console.log('Attempting login with:', { email });
     dispatch(login({ email, password }));
   };
 
   return (
     <FormContainer>
       <h1>Sign In</h1>
+      
+      {isError && <Alert variant="danger">{errorMessage || 'Login failed. Please try again.'}</Alert>}
+      
       <Form onSubmit={submitHandler}>
         <Form.Group controlId='email' className='my-3'>
           <Form.Label>Email Address</Form.Label>
@@ -53,7 +61,7 @@ const LoginScreen = () => {
         </Form.Group>
 
         <Button type='submit' variant='primary' disabled={isLoading} className='my-3'>
-          Sign In
+          {isLoading ? 'Signing in...' : 'Sign In'}
         </Button>
       </Form>
 

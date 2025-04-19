@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
-import { Form, Button, Row, Col } from 'react-bootstrap';
+import { Form, Button, Row, Col, Alert } from 'react-bootstrap';
 import { useDispatch, useSelector } from 'react-redux';
 import FormContainer from '../components/FormContainer';
 import { register } from '../redux/slices/authSlice';
@@ -16,12 +16,16 @@ const RegisterScreen = () => {
   const navigate = useNavigate();
   const location = useLocation();
 
-  const { userInfo, isLoading } = useSelector((state) => state.auth);
+  const { userInfo, isLoading, isError, errorMessage } = useSelector((state) => state.auth);
 
-  const redirect = location.search ? location.search.split('=')[1] : '/';
+  const redirect = location.search ? location.search.split('=')[1] : '/chat';
 
   useEffect(() => {
+    // Debug log
+    console.log('RegisterScreen useEffect - userInfo:', userInfo);
+    
     if (userInfo) {
+      console.log('Redirecting to:', redirect);
       navigate(redirect);
     }
   }, [navigate, userInfo, redirect]);
@@ -31,6 +35,8 @@ const RegisterScreen = () => {
     if (password !== confirmPassword) {
       setMessage('Passwords do not match');
     } else {
+      console.log('Attempting registration with:', { name, email });
+      setMessage(null);
       dispatch(register({ name, email, password }));
     }
   };
@@ -38,7 +44,9 @@ const RegisterScreen = () => {
   return (
     <FormContainer>
       <h1>Sign Up</h1>
-      {message && <div className='alert alert-danger'>{message}</div>}
+      {message && <Alert variant="danger">{message}</Alert>}
+      {isError && <Alert variant="danger">{errorMessage || 'Registration failed. Please try again.'}</Alert>}
+      
       <Form onSubmit={submitHandler}>
         <Form.Group controlId='name' className='my-3'>
           <Form.Label>Name</Form.Label>
@@ -81,7 +89,7 @@ const RegisterScreen = () => {
         </Form.Group>
 
         <Button type='submit' variant='primary' disabled={isLoading} className='my-3'>
-          Register
+          {isLoading ? 'Registering...' : 'Register'}
         </Button>
       </Form>
 
